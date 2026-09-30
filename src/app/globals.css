@@ -1,0 +1,48 @@
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-cream: #FAF8EC;
+  --surface-beige: #EAE7D5;
+  --surface-hover: #E2DFC9;
+  --ink-primary: #1C1B17;
+  --ink-border: rgba(28, 27, 23, 0.22);
+}
+
+body {
+  background-color: var(--bg-cream);
+  color: var(--ink-primary);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+}
+
+/* Editorial Serif Headings */
+h1, h2, h3, .font-editorial {
+  font-family: 'Instrument Serif', Georgia, serif;
+  letter-spacing: -0.02em;
+}
+
+/* Custom hairline borders adhering to Warm Editorial Minimalism */
+.card-border {
+  border: 1px solid rgba(28, 27, 23, 0.22);
+  border-radius: 12px;
+  background-color: #EAE7D5;
+  transition: background-color 150ms ease, border-color 150ms ease;
+}
+
+.card-border:hover {
+  background-color: #E3E0CE;
+}
+
+/* Focus styles */
+button:focus-visible, input:focus-visible, textarea:focus-visible {
+  outline: 2px solid #1C1B17;
+  outline-offset: 2px;
+}
