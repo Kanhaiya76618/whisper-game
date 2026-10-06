@@ -133,3 +133,9 @@ scooter is stand move forward but not align straing
 ## [2026-10-06T22:23:18+05:30] Prompt 7
 
 see this issue fix fast
+
+---
+
+## [2026-10-06T22:25:22+05:30] Prompt 8
+
+add remove this from here
