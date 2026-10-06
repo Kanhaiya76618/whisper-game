@@ -127,6 +127,45 @@ export const FlowMetricsView: React.FC<FlowMetricsViewProps> = ({ metrics, onSim
           </table>
         </div>
       </div>
+
+      {/* Video Presentation Script & Hackathon Submission Helper */}
+      <div className="p-6 bg-cream-surface border border-black/20 rounded-card mb-8">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h3 className="text-xl font-serif text-ink">
+              🎬 2-Minute Demo Video Script
+            </h3>
+            <p className="text-xs font-mono text-ink-muted">
+              Ready-made talking points for your Loom/Screen recording
+            </p>
+          </div>
+          <span className="px-2.5 py-1 bg-emerald-900/10 text-emerald-900 border border-emerald-800/30 rounded text-[11px] font-mono">
+            ✓ Wispr Flow Credits Active
+          </span>
+        </div>
+
+        <div className="space-y-4 text-xs font-sans text-ink leading-relaxed">
+          <div className="p-3 bg-cream rounded border border-black/10">
+            <strong className="font-mono text-ink-muted block mb-1">0:00 - 0:25 // The Hook:</strong>
+            &ldquo;Hey judges! This is the Hacker House Live Board & Horn OK Please Voice Arcade. I built this entire app without writing code by hand — 100% voice prompted using Wispr Flow. Notice the warm editorial minimalism design inspired by Wispr and Anthropic.&rdquo;
+          </div>
+
+          <div className="p-3 bg-cream rounded border border-black/10">
+            <strong className="font-mono text-ink-muted block mb-1">0:25 - 0:55 // Voice Notes & Live Board:</strong>
+            &ldquo;In a hacker house, ideas and blockers happen fast. Watch me speak into our Voice Notes Wall — browser Speech API transcribes it in real time, auto-detects that it&apos;s a blocker or a chai break, and pins it to the shared house board with live upvotes.&rdquo;
+          </div>
+
+          <div className="p-3 bg-cream rounded border border-black/10">
+            <strong className="font-mono text-ink-muted block mb-1">0:55 - 1:40 // The Hero: Horn OK Please:</strong>
+            &ldquo;Now for our breakroom arcade: &apos;Horn OK Please&apos;! You ride a scooter down a sunset beach road in Goa. Cows and potholes appear in your lane. Watch: when I honk or shout into the mic, the live volume meter crosses the threshold, synthesizes an Indian truck horn using the Web Audio API, and leaps over the cow!&rdquo;
+          </div>
+
+          <div className="p-3 bg-cream rounded border border-black/10">
+            <strong className="font-mono text-ink-muted block mb-1">1:40 - 2:00 // FlowMetrics Closer:</strong>
+            &ldquo;Finally, FlowMetrics tracks our voice telemetry: {metrics.wordsDictated.toLocaleString()} words spoken, saving over {metrics.timeSavedMinutes} minutes. Every single prompt is recorded verbatim with timestamps in PROMPTS.md. Built for Wispr Flow.&rdquo;
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

@@ -403,6 +403,16 @@ export const HornOKGame: React.FC<HornOKGameProps> = ({ onScoreSaved }) => {
         ctx.fillRect(x, canvas.height - 46, 20, 3);
       }
 
+      // Beach Road Landmark Signs
+      const landmark1 = 500 - (g.distance % 600) * 4;
+      if (landmark1 > -120 && landmark1 < canvas.width + 120) {
+        ctx.fillStyle = '#26241F';
+        ctx.fillRect(landmark1, canvas.height - 130, 95, 24);
+        ctx.fillStyle = '#FAF8EC';
+        ctx.font = '10px monospace';
+        ctx.fillText('📍 ANJUNA 2KM', landmark1 + 8, canvas.height - 114);
+      }
+
       // 6. Obstacles (Cows & Potholes)
       for (const obs of g.obstacles) {
         if (obs.type === 'cow') {
@@ -418,8 +428,10 @@ export const HornOKGame: React.FC<HornOKGameProps> = ({ onScoreSaved }) => {
       ctx.font = '40px sans-serif';
       ctx.fillText('🛵', 80, g.scooterY);
 
-      // Jump dust puff / horn effect
+      // Jump sound ripple & smoke effect
       if (g.isJumping) {
+        ctx.font = '16px sans-serif';
+        ctx.fillText('📢 HORN!', 85, g.scooterY - 25);
         ctx.font = '14px sans-serif';
         ctx.fillText('💨', 62, g.groundY);
       }
@@ -462,24 +474,30 @@ export const HornOKGame: React.FC<HornOKGameProps> = ({ onScoreSaved }) => {
             {micActive ? 'Mic Active' : 'Enable Voice Horn'}
           </button>
 
-          {/* Volume Meter */}
+          {/* Volume Meter with Visible Threshold Line */}
           <div className="flex items-center gap-2">
             <span className="text-ink-muted text-[11px]">Level:</span>
-            <div className="w-24 h-3 bg-black/10 rounded-full overflow-hidden flex items-center p-0.5">
+            <div className="relative w-28 h-3.5 bg-black/10 rounded-full overflow-hidden flex items-center p-0.5">
               <div
                 className={`h-full rounded-full transition-all duration-75 ${
                   micLevel >= threshold ? 'bg-red-600' : 'bg-ink'
                 }`}
                 style={{ width: `${Math.min(100, micLevel)}%` }}
               />
+              {/* Threshold indicator line */}
+              <div
+                className="absolute top-0 bottom-0 w-0.5 bg-red-600 z-10"
+                style={{ left: `${threshold}%` }}
+                title={`Trigger Threshold: ${threshold}%`}
+              />
             </div>
-            <span className="text-[10px] text-ink-faint w-6">{micLevel}%</span>
+            <span className="text-[10px] text-ink-faint w-7">{micLevel}%</span>
           </div>
         </div>
 
         {/* Sensitivity Slider */}
         <div className="flex items-center gap-2">
-          <span className="text-ink-muted text-[11px]">Sensitivity:</span>
+          <span className="text-ink-muted text-[11px]">Threshold:</span>
           <input
             type="range"
             min="15"
@@ -488,11 +506,20 @@ export const HornOKGame: React.FC<HornOKGameProps> = ({ onScoreSaved }) => {
             onChange={(e) => setThreshold(parseInt(e.target.value, 10))}
             className="w-24 accent-ink cursor-pointer"
           />
-          <span className="text-[10px] text-ink-faint">{threshold}</span>
+          <span className="text-[10px] text-ink-faint">{threshold}%</span>
         </div>
 
-        {/* Live Score Counter */}
-        <div className="flex items-center gap-4 text-xs">
+        {/* Live Score Counter & Manual Test Honk */}
+        <div className="flex items-center gap-3 text-xs">
+          <button
+            onClick={() => {
+              if (gameState === 'running') triggerJump('Manual Honk');
+            }}
+            className="px-2.5 py-1 bg-black/10 hover:bg-black/15 rounded text-[11px] font-mono text-ink"
+          >
+            📢 Test Honk
+          </button>
+          <span className="text-ink-faint">|</span>
           <span>
             Distance: <strong className="font-mono text-sm">{score}m</strong>
           </span>
@@ -504,7 +531,7 @@ export const HornOKGame: React.FC<HornOKGameProps> = ({ onScoreSaved }) => {
       </div>
 
       {/* Game Canvas Container */}
-      <div className="relative border border-black/25 rounded-card overflow-hidden bg-[#FAF8EC] flex justify-center items-center select-none shadow-none">
+      <div className="relative border border-black/25 rounded-card overflow-hidden bg-[#FAF8EC] flex justify-center items-center select-none shadow-none touch-none">
         <canvas
           ref={canvasRef}
           width={800}

@@ -103,3 +103,15 @@ Anthropic marketing pages):
 Apply this design system consistently to every page and component.
 
 "Go with Next.js plus Tailwind, local state for data first, and only add Supabase if the build goes smoothly and we have time. Use the design direction I gave you. Green light — go."
+
+---
+
+## [2026-10-06T22:08:43+05:30] Prompt 3
+
+let's do other work we have 1 hr so make sure be perfect and done everything and tell me what to make a video
+
+---
+
+## [2026-10-06T22:09:09+05:30] Prompt 4
+
+and i got wishper flow credits
