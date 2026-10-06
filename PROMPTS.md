@@ -145,3 +145,9 @@ add remove this from here
 ## [2026-10-06T23:14:39+05:30] Prompt 9
 
 can you make it like a docker compatible like open source please and push it in 4 part fast
+
+---
+
+## [2026-10-06T23:25:01+05:30] Prompt 10
+
+edit readme perfectly and interactively and make sure oragansiser can understand after reading it so write in detail
