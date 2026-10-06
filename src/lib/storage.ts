@@ -95,13 +95,14 @@ const STORAGE_KEYS = {
 
 export const getStoredProjects = (): Project[] => {
   if (typeof window === 'undefined') return INITIAL_PROJECTS;
-  const data = localStorage.getItem(STORAGE_KEYS.PROJECTS);
-  if (!data) {
-    localStorage.setItem(STORAGE_KEYS.PROJECTS, JSON.stringify(INITIAL_PROJECTS));
-    return INITIAL_PROJECTS;
-  }
   try {
-    return JSON.parse(data);
+    const data = localStorage.getItem(STORAGE_KEYS.PROJECTS);
+    if (!data || data === 'undefined' || data === 'null' || data.trim() === '') {
+      localStorage.setItem(STORAGE_KEYS.PROJECTS, JSON.stringify(INITIAL_PROJECTS));
+      return INITIAL_PROJECTS;
+    }
+    const parsed = JSON.parse(data);
+    return Array.isArray(parsed) ? parsed : INITIAL_PROJECTS;
   } catch {
     return INITIAL_PROJECTS;
   }
@@ -109,18 +110,21 @@ export const getStoredProjects = (): Project[] => {
 
 export const saveProjects = (projects: Project[]) => {
   if (typeof window === 'undefined') return;
-  localStorage.setItem(STORAGE_KEYS.PROJECTS, JSON.stringify(projects));
+  try {
+    localStorage.setItem(STORAGE_KEYS.PROJECTS, JSON.stringify(projects));
+  } catch {}
 };
 
 export const getStoredNotes = (): VoiceNote[] => {
   if (typeof window === 'undefined') return INITIAL_NOTES;
-  const data = localStorage.getItem(STORAGE_KEYS.NOTES);
-  if (!data) {
-    localStorage.setItem(STORAGE_KEYS.NOTES, JSON.stringify(INITIAL_NOTES));
-    return INITIAL_NOTES;
-  }
   try {
-    return JSON.parse(data);
+    const data = localStorage.getItem(STORAGE_KEYS.NOTES);
+    if (!data || data === 'undefined' || data === 'null' || data.trim() === '') {
+      localStorage.setItem(STORAGE_KEYS.NOTES, JSON.stringify(INITIAL_NOTES));
+      return INITIAL_NOTES;
+    }
+    const parsed = JSON.parse(data);
+    return Array.isArray(parsed) ? parsed : INITIAL_NOTES;
   } catch {
     return INITIAL_NOTES;
   }
@@ -128,18 +132,21 @@ export const getStoredNotes = (): VoiceNote[] => {
 
 export const saveNotes = (notes: VoiceNote[]) => {
   if (typeof window === 'undefined') return;
-  localStorage.setItem(STORAGE_KEYS.NOTES, JSON.stringify(notes));
+  try {
+    localStorage.setItem(STORAGE_KEYS.NOTES, JSON.stringify(notes));
+  } catch {}
 };
 
 export const getStoredMetrics = (): FlowMetricsData => {
   if (typeof window === 'undefined') return INITIAL_FLOW_METRICS;
-  const data = localStorage.getItem(STORAGE_KEYS.METRICS);
-  if (!data) {
-    localStorage.setItem(STORAGE_KEYS.METRICS, JSON.stringify(INITIAL_FLOW_METRICS));
-    return INITIAL_FLOW_METRICS;
-  }
   try {
-    return JSON.parse(data);
+    const data = localStorage.getItem(STORAGE_KEYS.METRICS);
+    if (!data || data === 'undefined' || data === 'null' || data.trim() === '') {
+      localStorage.setItem(STORAGE_KEYS.METRICS, JSON.stringify(INITIAL_FLOW_METRICS));
+      return INITIAL_FLOW_METRICS;
+    }
+    const parsed = JSON.parse(data);
+    return parsed && typeof parsed === 'object' ? parsed : INITIAL_FLOW_METRICS;
   } catch {
     return INITIAL_FLOW_METRICS;
   }
