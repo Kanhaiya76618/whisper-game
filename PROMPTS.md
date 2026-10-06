@@ -151,3 +151,9 @@ can you make it like a docker compatible like open source please and push it in 
 ## [2026-10-06T23:25:01+05:30] Prompt 10
 
 edit readme perfectly and interactively and make sure oragansiser can understand after reading it so write in detail
+
+---
+
+## [2026-10-06T23:32:16+05:30] Prompt 11
+
+what is the issue check
