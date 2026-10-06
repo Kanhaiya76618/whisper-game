@@ -554,16 +554,35 @@ export const HornOKGame: React.FC<HornOKGameProps> = ({ onScoreSaved }) => {
         }
       }
 
-      // 7. Player Scooter
-      ctx.font = '40px sans-serif';
-      ctx.fillText('🛵', 80, g.scooterY);
+      // 7. Player Scooter (Facing Forward towards Right, Aligned Straight with Road)
+      ctx.save();
+      const scooterDrawX = 95;
+      const roadVibe = g.isJumping ? 0 : Math.sin(g.distance * 0.4) * 0.6;
+      const scooterDrawY = g.scooterY + 4 + roadVibe;
+
+      ctx.translate(scooterDrawX, scooterDrawY);
+
+      // Natural tilt: wheel lifts up slightly during jump ascent, levels straight on descent & ground
+      const jumpTilt = g.isJumping ? Math.max(-0.22, Math.min(0.12, g.scooterVy * 0.016)) : 0;
+      ctx.rotate(jumpTilt);
+
+      // Flip horizontally so the scooter faces FORWARD (Right) down the Goa road
+      ctx.scale(-1, 1);
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'bottom';
+      ctx.font = '42px sans-serif';
+      ctx.fillText('🛵', 0, 0);
+      ctx.restore();
 
       // Jump sound ripple & smoke effect
       if (g.isJumping) {
-        ctx.font = '16px sans-serif';
-        ctx.fillText('📢 HORN!', 85, g.scooterY - 25);
+        ctx.save();
+        ctx.textAlign = 'left';
+        ctx.font = '15px sans-serif';
+        ctx.fillText('📢 HORN!', 90, g.scooterY - 32);
         ctx.font = '14px sans-serif';
-        ctx.fillText('💨', 62, g.groundY);
+        ctx.fillText('💨', 60, g.groundY + 2);
+        ctx.restore();
       }
 
       animFrameIdRef.current = requestAnimationFrame(loop);
