@@ -139,3 +139,9 @@ see this issue fix fast
 ## [2026-10-06T22:25:22+05:30] Prompt 8
 
 add remove this from here
+
+---
+
+## [2026-10-06T23:14:39+05:30] Prompt 9
+
+can you make it like a docker compatible like open source please and push it in 4 part fast
