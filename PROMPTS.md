@@ -115,3 +115,9 @@ let's do other work we have 1 hr so make sure be perfect and done everything and
 ## [2026-10-06T22:09:09+05:30] Prompt 4
 
 and i got wishper flow credits
+
+---
+
+## [2026-10-06T22:16:03+05:30] Prompt 5
+
+in the game would add other thing like goat and pot holes are not working properly and add some other vehicles also that it not crash with them and put all these random

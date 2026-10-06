@@ -28,6 +28,7 @@ export const HornOKGame: React.FC<HornOKGameProps> = ({ onScoreSaved }) => {
   const lastJumpTimeRef = useRef<number>(0);
 
   // Game internal state
+  const [gameOverReason, setGameOverReason] = useState<string>('Hit an obstacle!');
   const gameRef = useRef({
     scooterY: 0,
     scooterVy: 0,
@@ -39,10 +40,19 @@ export const HornOKGame: React.FC<HornOKGameProps> = ({ onScoreSaved }) => {
     speed: 5.5,
     obstacles: [] as Array<{
       x: number;
-      type: 'cow' | 'pothole';
+      type: 'cow' | 'goat' | 'pothole';
       width: number;
       height: number;
       passed: boolean;
+    }>,
+    // Background vehicles that cruise by in the adjacent lane and do NOT collide
+    bgVehicles: [] as Array<{
+      x: number;
+      y: number;
+      type: 'rickshaw' | 'truck' | 'bike' | 'van';
+      speed: number;
+      width: number;
+      emoji: string;
     }>,
     trees: [] as Array<{ x: number; scale: number; speedMul: number }>,
     roadOffset: 0,
@@ -96,7 +106,7 @@ export const HornOKGame: React.FC<HornOKGameProps> = ({ onScoreSaved }) => {
 
       osc.type = 'sawtooth';
       osc.frequency.setValueAtTime(140, ctx.currentTime);
-      osc.frequency.linearRampToValueAtTime(120, ctx.currentTime + 0.4);
+      osc.frequency.linearRampToValueAtTime(115, ctx.currentTime + 0.42);
 
       gain.gain.setValueAtTime(0.25, ctx.currentTime);
       gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.45);
@@ -111,6 +121,30 @@ export const HornOKGame: React.FC<HornOKGameProps> = ({ onScoreSaved }) => {
     }
   }, [getAudioContext]);
 
+  const playBaa = useCallback(() => {
+    try {
+      const ctx = getAudioContext();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(280, ctx.currentTime);
+      osc.frequency.linearRampToValueAtTime(320, ctx.currentTime + 0.12);
+      osc.frequency.linearRampToValueAtTime(240, ctx.currentTime + 0.32);
+
+      gain.gain.setValueAtTime(0.2, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.35);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start();
+      osc.stop(ctx.currentTime + 0.35);
+    } catch {
+      // Audio fallback
+    }
+  }, [getAudioContext]);
+
   const playCrash = useCallback(() => {
     try {
       const ctx = getAudioContext();
@@ -118,10 +152,10 @@ export const HornOKGame: React.FC<HornOKGameProps> = ({ onScoreSaved }) => {
       const gain = ctx.createGain();
 
       osc.type = 'square';
-      osc.frequency.setValueAtTime(80, ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(30, ctx.currentTime + 0.35);
+      osc.frequency.setValueAtTime(90, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(25, ctx.currentTime + 0.35);
 
-      gain.gain.setValueAtTime(0.3, ctx.currentTime);
+      gain.gain.setValueAtTime(0.35, ctx.currentTime);
       gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.35);
 
       osc.connect(gain);
@@ -244,6 +278,16 @@ export const HornOKGame: React.FC<HornOKGameProps> = ({ onScoreSaved }) => {
       distance: 0,
       speed: 5.5,
       obstacles: [],
+      bgVehicles: [
+        {
+          x: canvas.width * 0.4,
+          y: canvas.height - 96,
+          type: 'rickshaw',
+          speed: 3.2,
+          width: 36,
+          emoji: '🛺',
+        },
+      ],
       trees: [
         { x: 100, scale: 0.8, speedMul: 0.4 },
         { x: 320, scale: 1.1, speedMul: 0.45 },
@@ -299,61 +343,128 @@ export const HornOKGame: React.FC<HornOKGameProps> = ({ onScoreSaved }) => {
         }
       }
 
+      // Background non-colliding vehicles (traffic in upper lane)
+      for (let i = g.bgVehicles.length - 1; i >= 0; i--) {
+        const v = g.bgVehicles[i];
+        v.x -= (g.speed * 0.75 + v.speed) * dt;
+        if (v.x < -100) {
+          g.bgVehicles.splice(i, 1);
+        }
+      }
+
+      // Randomly spawn background vehicles (do NOT collide with player)
+      if (Math.random() < 0.008 && g.bgVehicles.length < 2) {
+        const vehicleTypes: Array<{ type: 'rickshaw' | 'truck' | 'bike' | 'van'; emoji: string; speed: number; width: number }> = [
+          { type: 'rickshaw', emoji: '🛺', speed: 1.2, width: 34 },
+          { type: 'truck', emoji: '🚛', speed: 0.8, width: 50 },
+          { type: 'bike', emoji: '🏍️', speed: 2.4, width: 30 },
+          { type: 'van', emoji: '🚐', speed: 1.5, width: 40 },
+        ];
+        const pick = vehicleTypes[Math.floor(Math.random() * vehicleTypes.length)];
+        g.bgVehicles.push({
+          x: canvas.width + 60,
+          y: canvas.height - 96,
+          type: pick.type,
+          emoji: pick.emoji,
+          speed: pick.speed,
+          width: pick.width,
+        });
+      }
+
       // Road dashes
       g.roadOffset = (g.roadOffset + g.speed * dt) % 40;
 
-      // Spawn Obstacles (cows and potholes)
+      // Spawn Obstacles (randomized cows, goats, and potholes)
       obstacleTimer += dt;
-      const spawnInterval = Math.max(75, 120 - g.distance * 0.04);
-      if (obstacleTimer > spawnInterval) {
+      const minInterval = Math.max(68, 108 - g.distance * 0.035);
+      const randomThreshold = minInterval + (Math.sin(g.distance * 0.05) * 15 + 15);
+      if (obstacleTimer > randomThreshold) {
         obstacleTimer = 0;
-        const isCow = Math.random() > 0.45;
+        const rand = Math.random();
+        let obsType: 'cow' | 'goat' | 'pothole';
+        let width = 38;
+        let height = 34;
+
+        if (rand < 0.38) {
+          obsType = 'cow';
+          width = 44;
+          height = 38;
+        } else if (rand < 0.70) {
+          obsType = 'goat';
+          width = 36;
+          height = 30;
+        } else {
+          obsType = 'pothole';
+          width = 46;
+          height = 14;
+        }
+
         g.obstacles.push({
-          x: canvas.width + 20,
-          type: isCow ? 'cow' : 'pothole',
-          width: isCow ? 44 : 36,
-          height: isCow ? 42 : 16,
+          x: canvas.width + 25,
+          type: obsType,
+          width,
+          height,
           passed: false,
         });
       }
 
-      // Move & prune obstacles
+      // Move & check collisions for obstacles
       for (let i = g.obstacles.length - 1; i >= 0; i--) {
         const obs = g.obstacles[i];
         obs.x -= g.speed * dt;
 
-        // Passed sound (cow moo)
-        if (!obs.passed && obs.x < 100) {
+        // Sound cues when safely passing
+        if (!obs.passed && obs.x < 80) {
           obs.passed = true;
           if (obs.type === 'cow') {
             playMoo();
+          } else if (obs.type === 'goat') {
+            playBaa();
           }
         }
 
-        // Collision Check
+        // Precise collision detection
         const scooterX = 90;
         const scooterW = 38;
-        const scooterH = 34;
-        const scooterHitY = g.scooterY - scooterH;
 
-        const obsHitY =
-          obs.type === 'cow' ? g.groundY - obs.height + 4 : g.groundY - obs.height + 10;
+        if (obs.type === 'pothole') {
+          // Pothole collision:
+          // Scooter crashes if horizontally overlapping while its wheels are ON the road
+          const horizontalOverlap = (scooterX + scooterW - 10) > obs.x && (scooterX + 8) < (obs.x + obs.width);
+          const isGrounded = g.scooterY >= g.groundY - 14; // airborne scooters clear the hole!
 
-        // Overlap bounding box check
-        const overlapX = scooterX + scooterW > obs.x + 8 && scooterX < obs.x + obs.width - 8;
-        const overlapY = scooterHitY + scooterH > obsHitY + 6;
+          if (horizontalOverlap && isGrounded) {
+            playCrash();
+            setGameOverReason('Thud! Dropped straight into a road pothole!');
+            setGameState('gameover');
+            saveBestGameScore(g.distance);
+            setBestScore((prev) => Math.max(prev, g.distance));
+            if (onScoreSaved) onScoreSaved(g.distance);
+            return;
+          }
+        } else {
+          // Animal collision (cow or goat):
+          // Must jump above the animal's back
+          const horizontalOverlap = (scooterX + scooterW - 12) > obs.x && (scooterX + 8) < (obs.x + obs.width);
+          const animalTop = g.groundY - obs.height;
+          const verticalOverlap = g.scooterY > animalTop + 10;
 
-        if (overlapX && overlapY) {
-          // Crash!
-          playCrash();
-          setGameState('gameover');
-          saveBestGameScore(g.distance);
-          setBestScore((prev) => Math.max(prev, g.distance));
-          if (onScoreSaved) onScoreSaved(g.distance);
-          return;
+          if (horizontalOverlap && verticalOverlap) {
+            playCrash();
+            setGameOverReason(
+              obs.type === 'cow'
+                ? 'Ouch! Ran into a holy cow resting in the lane!'
+                : 'Whoops! Startled a Goa beach goat!'
+            );
+            setGameState('gameover');
+            saveBestGameScore(g.distance);
+            setBestScore((prev) => Math.max(prev, g.distance));
+            if (onScoreSaved) onScoreSaved(g.distance);
+            return;
+          }
         }
 
-        if (obs.x < -60) {
+        if (obs.x < -80) {
           g.obstacles.splice(i, 1);
         }
       }
@@ -397,6 +508,12 @@ export const HornOKGame: React.FC<HornOKGameProps> = ({ onScoreSaved }) => {
       ctx.fillStyle = '#EAE7D5';
       ctx.fillRect(0, canvas.height - 88, canvas.width, 4);
 
+      // Background ambient vehicles (cruising harmlessly in upper road lane)
+      for (const v of g.bgVehicles) {
+        ctx.font = '32px sans-serif';
+        ctx.fillText(v.emoji, v.x, v.y);
+      }
+
       // Center white dashes
       ctx.fillStyle = '#F8F6E8';
       for (let x = -g.roadOffset; x < canvas.width; x += 40) {
@@ -413,14 +530,27 @@ export const HornOKGame: React.FC<HornOKGameProps> = ({ onScoreSaved }) => {
         ctx.fillText('📍 ANJUNA 2KM', landmark1 + 8, canvas.height - 114);
       }
 
-      // 6. Obstacles (Cows & Potholes)
+      // 6. Obstacles (Cows, Goats, Potholes)
       for (const obs of g.obstacles) {
         if (obs.type === 'cow') {
           ctx.font = '38px sans-serif';
           ctx.fillText('🐄', obs.x, g.groundY);
+        } else if (obs.type === 'goat') {
+          ctx.font = '32px sans-serif';
+          ctx.fillText('🐐', obs.x, g.groundY);
         } else {
-          ctx.font = '30px sans-serif';
-          ctx.fillText('🕳️', obs.x, g.groundY + 4);
+          // Pothole with dark crater ellipse on asphalt
+          ctx.save();
+          ctx.fillStyle = '#181714';
+          ctx.beginPath();
+          ctx.ellipse(obs.x + 20, g.groundY + 8, 22, 7, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = '#4A463B';
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+          ctx.font = '22px sans-serif';
+          ctx.fillText('🕳️', obs.x + 2, g.groundY + 7);
+          ctx.restore();
         }
       }
 
@@ -444,7 +574,7 @@ export const HornOKGame: React.FC<HornOKGameProps> = ({ onScoreSaved }) => {
     return () => {
       if (animFrameIdRef.current) cancelAnimationFrame(animFrameIdRef.current);
     };
-  }, [gameState, playCrash, playMoo, onScoreSaved]);
+  }, [gameState, playCrash, playMoo, playBaa, onScoreSaved]);
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
@@ -569,9 +699,11 @@ export const HornOKGame: React.FC<HornOKGameProps> = ({ onScoreSaved }) => {
         {/* Game Over Overlay */}
         {gameState === 'gameover' && (
           <div className="absolute inset-0 bg-cream-surface/95 flex flex-col items-center justify-center p-6 text-center animate-fadeIn">
-            <span className="text-5xl mb-2">💥 🐄</span>
-            <h3 className="text-3xl sm:text-4xl font-serif text-ink mb-1">
-              Ouch! Cow in the lane!
+            <span className="text-5xl mb-2">
+              {gameOverReason.includes('pothole') ? '💥 🕳️' : gameOverReason.includes('goat') ? '💥 🐐' : '💥 🐄'}
+            </span>
+            <h3 className="text-2xl sm:text-3xl font-serif text-ink mb-1">
+              {gameOverReason}
             </h3>
             <p className="text-xs font-mono uppercase text-ink-muted mb-4">
               Distance Travelled: <strong className="text-ink text-base">{score} meters</strong>
@@ -584,7 +716,7 @@ export const HornOKGame: React.FC<HornOKGameProps> = ({ onScoreSaved }) => {
             <div className="flex gap-3">
               <button
                 onClick={startGame}
-                className="px-6 py-2.5 bg-ink text-cream rounded-full text-xs font-mono uppercase tracking-wider font-semibold hover:opacity-90"
+                className="px-6 py-2.5 bg-ink text-cream rounded-full text-xs font-mono uppercase tracking-wider font-semibold hover:opacity-90 active:scale-95 transition-transform"
               >
                 Ride Again [Space]
               </button>
